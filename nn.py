@@ -38,6 +38,7 @@ class neural_net:
         # structure is a tuple with entries representing no. of nodes in each layer
         self.struct = struct
         self.n_layers = len(struct) - 2
+        self.lr = 1
         self.input = np.zeros(struct[0])
         self.out = np.zeros(struct[-1])
         # [
@@ -47,7 +48,7 @@ class neural_net:
         #     ],
         #     [] // layer 2->3
         # ]
-        
+
         # Random value initalisation
 
         self.weight = [(np.random.rand(w, v) * 2 - 1)  / math.sqrt(v) for v, w in zip(struct[:-1], struct[1:])]
@@ -71,25 +72,37 @@ class neural_net:
         # Init deltas to 0
         dweight = [np.zeros((w, v)) for v, w in zip(self.struct[:-1], self.struct[1:])]
         dbias = [np.zeros(v) for v in self.struct[1:-1]]
-        dactivation = [np.zeros(v) for v in self.struct[1:-1]] # <-- [1:]
+        dactivation = [np.zeros(v) for v in self.struct[1:-1]]
 
         L = [x]
         for i in range(self.n_layers):
             L += [sigmoid(np.dot(self.weight[i], L[i]) + self.bias[i])]
         L += [sigmoid(np.dot(self.weight[self.n_layers], L[self.n_layers]))]
 
-        # dactivation[-1] = y - L[-1]
+        for n in reversed(range(self.n_layers + 1)):
+            for nodei in range(self.struct[n]):
+                for nodej in range(self.struct[n + 1]):
+                    if n > 0:
+                        Lwb = L[n][nodei] * self.weight[n][nodej][nodei] + self.bias[n - 1][nodei]
+                        if n == self.n_layers:
+                            deriv = 2 / self.struct[n + 1] * (sigmoid(Lwb) - L[n + 1][nodej]) * sigmoid(Lwb, derivative=True)
+                        else:
+                            deriv = sigmoid(Lwb, derivative=True) * dactivation[n][nodej]
 
-        for layer in L[1::-1]:
-            for i, y in enumerate(layer):
-                pass
+                        dweight[n][nodej][nodei] = deriv * L[n][nodei]
+                        dbias[n - 1][nodei] += deriv
+                        dactivation[n - 1][nodei] += deriv * self.weight[n][nodej][nodei]
+                    else:
+                        Lwb = L[n][nodei] * self.weight[n][nodej][nodei]
+                        deriv = sigmoid(Lwb, derivative=True) * dactivation[n][nodej]
+
+                        dweight[n][nodej][nodei] = deriv * L[n][nodei]
+
+        self.weight[i] = [x - y for x, y in zip(self.weight[i], dweight[i] * self.lr)]
+        self.bias[i] = [x - y for x, y in zip(self.bias[i], dbias[i] * self.lr)]
 
     def loss(self, x, y):
-        loss = 0
-        for fxi, yi in zip(self.run(x), y):
-            loss += math.pow(fxi - yi, 2)
-
-        return loss / len(y)
+        return sum(np.square(self.run(x) - y)) / len(y)
 
     def test(self, test_data):
         n_pass = 0
@@ -127,10 +140,16 @@ class neural_net:
 
 nn = neural_net((28 * 28, 16, 16, 10))
 nn.run(training_data[0][0], show=True)
-print("Loss:", nn.loss(*training_data[0]))
+loss = nn.loss(*training_data[0])
+print("Loss:", loss)
 print("Accuracy:", str(nn.test(test_data) * 100) + "%")
 
-nn.backprop(*training_data[0])
+prev = loss
+for i in range(30):
+    nn.backprop(*training_data[0])
+    loss = nn.loss(*training_data[0])
+    print("Loss:", loss, ['+', '-'][prev > loss])
+    prev = loss
 
 # nn.show()
 # show_img(training_data[0][0])
