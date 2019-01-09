@@ -12,7 +12,7 @@ This code was written in [Python 3.71](https://www.python.org/downloads/release/
 pip install numpy
 pip install matplotlib
 ```
-You will need to clone this repo (rather than download the ZIP) is you want it to work with the mnist files provided, since they are managed by github lfs (large file system).
+You will need to clone this repo (rather than download the ZIP) if you want it to work with the mnist files provided, since they are managed by github lfs (large file system).
 	
 
 ## Usage
