@@ -7,12 +7,12 @@ Hi! I'm Jeremie and this is my first atempt at making a **neural network** from 
 
 ## Setup
 
-This code was written in [Python 3.71](https://www.python.org/downloads/release/python-371/), and requires numpy and matplotlib. Simply run the following commands:
+This code was written in [Python 3.71](https://www.python.org/downloads/release/python-371/), and requires numpy and matplotlib. Simply run the following commands to install them:
 ```
 pip install numpy
 pip install matplotlib
 ```
-You will need to close this repo (rather than download the ZIP) is you want it to work with the mnist files provided, since they are managed by github lfs (large file system).
+You will need to clone this repo (rather than download the ZIP) is you want it to work with the mnist files provided, since they are managed by github lfs (large file system).
 	
 
 ## Usage
