@@ -2,6 +2,8 @@ import math
 import random as r
 import numpy as np
 import pickle
+from multiprocessing.dummy import Pool as ThreadPool
+import time
 import matplotlib.pyplot as plt
 import matplotlib.colors as cplt
 
@@ -68,41 +70,49 @@ class neural_net:
 
         return L
 
-    def backprop(self, x, y):
+    def backprop(self, training):
         # Init deltas to 0
         dweight = [np.zeros((w, v)) for v, w in zip(self.struct[:-1], self.struct[1:])]
         dbias = [np.zeros(v) for v in self.struct[1:-1]]
         dactivation = [np.zeros(v) for v in self.struct[1:-1]]
 
-        L = [x]
-        for i in range(self.n_layers):
-            L += [sigmoid(np.dot(self.weight[i], L[i]) + self.bias[i])]
-        L += [sigmoid(np.dot(self.weight[self.n_layers], L[self.n_layers]))]
+        def one_backprop(example):
+            x = example[0]
+            y = example[1]
 
-        for n in reversed(range(self.n_layers + 1)):
-            for nodei in range(self.struct[n]):
-                for nodej in range(self.struct[n + 1]):
-                    if n > 0:
-                        Lwb = L[n][nodei] * self.weight[n][nodej][nodei] + self.bias[n - 1][nodei]
-                        if n == self.n_layers:
-                            deriv = 2 / self.struct[n + 1] * (sigmoid(Lwb) - L[n + 1][nodej]) * sigmoid(Lwb, derivative=True)
+            L = [x]
+            for i in range(self.n_layers):
+                L += [sigmoid(np.dot(self.weight[i], L[i]) + self.bias[i])]
+
+            for n in reversed(range(self.n_layers + 1)):
+                for nodei in range(self.struct[n]):
+                    for nodej in range(self.struct[n + 1]):
+                        if n > 0:
+                            Lwb = L[n][nodei] * self.weight[n][nodej][nodei] + self.bias[n - 1][nodei]
+                            if n == self.n_layers:
+                                deriv = 2 / self.struct[n + 1] * (sigmoid(Lwb) - y[nodej]) * sigmoid(Lwb, derivative=True)
+                            else:
+                                deriv = sigmoid(Lwb, derivative=True) * dactivation[n][nodej]
+
+                            dweight[n][nodej][nodei] += deriv * L[n][nodei]
+                            dbias[n - 1][nodei] += deriv
+                            dactivation[n - 1][nodei] += deriv * self.weight[n][nodej][nodei]
                         else:
+                            Lwb = L[n][nodei] * self.weight[n][nodej][nodei]
                             deriv = sigmoid(Lwb, derivative=True) * dactivation[n][nodej]
 
-                        dweight[n][nodej][nodei] = deriv * L[n][nodei]
-                        dbias[n - 1][nodei] += deriv
-                        dactivation[n - 1][nodei] += deriv * self.weight[n][nodej][nodei]
-                    else:
-                        Lwb = L[n][nodei] * self.weight[n][nodej][nodei]
-                        deriv = sigmoid(Lwb, derivative=True) * dactivation[n][nodej]
+                            dweight[n][nodej][nodei] = deriv * L[n][nodei]
 
-                        dweight[n][nodej][nodei] = deriv * L[n][nodei]
+        pool = ThreadPool(4)
+        pool.map(one_backprop, training)
+        # for example in training:
+        #     thread.start_new_thread(one_backprop, (self, example[0], example[1]))
 
-        self.weight[i] = [x - y for x, y in zip(self.weight[i], dweight[i] * self.lr)]
-        self.bias[i] = [x - y for x, y in zip(self.bias[i], dbias[i] * self.lr)]
+        self.weight = [x - (y * self.lr) / len(training) for x, y in zip(self.weight, dweight)]
+        self.bias = [x - (y * self.lr)  / len(training) for x, y in zip(self.bias, dbias)]
 
-    def loss(self, x, y):
-        return sum(np.square(self.run(x) - y)) / len(y)
+    def loss(self, data):
+        return sum([sum(np.square(self.run(i[0]) - i[1])) / len(i[1]) for i in data]) / len(data)
 
     def test(self, test_data):
         n_pass = 0
@@ -125,7 +135,7 @@ class neural_net:
         side = int(math.sqrt(self.struct[layer - 1]))
 
         cmap = cplt.LinearSegmentedColormap.from_list("", ["#ff704d", "#222222", "#70db70"])
-
+        plt.show()
         n_plots = int(math.sqrt(self.struct[layer]))
         fig, axes = plt.subplots(n_plots, n_plots)
         for i in range(n_plots):
@@ -136,20 +146,38 @@ class neural_net:
 
         plt.subplots_adjust(left=0.03, right=0.97, top=0.97, bottom=0.03, wspace=0.1, hspace=0.1)
 
-        plt.show()
+
+
+    def set_lr(self, lr):
+        self.lr = lr
 
 nn = neural_net((28 * 28, 16, 16, 10))
 nn.run(training_data[0][0], show=True)
-loss = nn.loss(*training_data[0])
+loss = nn.loss(training_data[:2500])
 print("Loss:", loss)
-print("Accuracy:", str(nn.test(test_data) * 100) + "%")
+# print("Accuracy:", str(nn.test(test_data) * 100) + "%")
+print("Accuracy:", str(nn.test(training_data[:100]) * 100) + "%")
+
+nn.show()
 
 prev = loss
-for i in range(30):
-    nn.backprop(*training_data[0])
-    loss = nn.loss(*training_data[0])
-    print("Loss:", loss, ['+', '-'][prev > loss])
-    prev = loss
+batch = 50
+cycles = 50
+for i, data in enumerate([training_data[n:n + batch] for n in range(0, batch * cycles, batch)]):
+    time1 = time.time()
+    nn.backprop(data)
+    time2 = time.time()
+    print('{:.3f} s'.format(time2 - time1))
 
-# nn.show()
+    loss = nn.loss(training_data[:batch * cycles])
+
+    print("(" + str(i + 1) + "/" + str(cycles) + ") Loss:", loss, ['+', '-'][prev > loss])
+    prev = loss
+# for i in range(1000):
+#     nn.backprop([training_data[0]])
+# print("Accuracy:", str(nn.test(test_data) * 100) + "%")
+print("Accuracy:", str(nn.test(training_data[:2500]) * 100) + "%")
+nn.run(training_data[0][0], show=True)
+
+
 # show_img(training_data[0][0])
