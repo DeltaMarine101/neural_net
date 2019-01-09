@@ -2,7 +2,7 @@
 
 # Welcome to my neural net!
 
-Hi! I'm Jeremie and this is my first atempt at making a **neural network** from scratch. If you want to learn about neural networks yourself, you can [watch these videos](https://www.youtube.com/watch?v=aircAruvnKk&list=PLjtrFat0jG9e8K-A_QpIJAzsBHTgPARQW). If you want to play around with making one yourself, feel free to edit, tinker and destroy my code!
+Hi! I'm Jeremie and this is my first attempt at making a **neural network** from scratch. If you want to learn about neural networks yourself, you can [watch these videos](https://www.youtube.com/watch?v=aircAruvnKk&list=PLjtrFat0jG9e8K-A_QpIJAzsBHTgPARQW). If you want to play around with making one yourself, feel free to edit, tinker and destroy my code!
 
 
 ## Setup
