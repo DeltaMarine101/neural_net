@@ -2,7 +2,6 @@ import math
 import random as r
 import numpy as np
 import pickle
-from multiprocessing.dummy import Pool as ThreadPool
 import time
 import matplotlib.pyplot as plt
 import matplotlib.colors as cplt
@@ -76,7 +75,7 @@ class neural_net:
         dbias = [np.zeros(v) for v in self.struct[1:-1]]
         dactivation = [np.zeros(v) for v in self.struct[1:-1]]
 
-        def one_backprop(example):
+        for example in training:
             x = example[0]
             y = example[1]
 
@@ -102,11 +101,6 @@ class neural_net:
                             deriv = sigmoid(Lwb, derivative=True) * dactivation[n][nodej]
 
                             dweight[n][nodej][nodei] = deriv * L[n][nodei]
-
-        pool = ThreadPool(4)
-        pool.map(one_backprop, training)
-        # for example in training:
-        #     thread.start_new_thread(one_backprop, (self, example[0], example[1]))
 
         self.weight = [x - (y * self.lr) / len(training) for x, y in zip(self.weight, dweight)]
         self.bias = [x - (y * self.lr)  / len(training) for x, y in zip(self.bias, dbias)]
