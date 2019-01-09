@@ -12,7 +12,7 @@ This code was written in [Python 3.71](https://www.python.org/downloads/release/
 pip install numpy
 pip install matplotlib
 ```
-You will need to clone this repo (rather than download the ZIP) if you want it to work with the mnist files provided, since they are managed by github lfs (large file system).
+You will need to clone this repo (rather than download the ZIP) if you want it to work with the MNIST files provided, since they are managed by github lfs (large file system).
 	
 
 ## Usage
@@ -22,7 +22,7 @@ Start by creating a neural_net instance and pass in a shape for the network. The
 # This takes in 28 by 28 images, passes them through 2 hidden layers of 16 nodes, then outputs 10 values
 nn = neural_network((28 * 28, 16, 16, 10))
 ```
-The neural net is now initialised with random weights and biases, so in order to train it you can back-propogate training data. make sure you only pass in batches of 10 to 100 training examples, you can re-run backprop as many times as you want and it will continue to improve.
+The neural net is now initialised with random weights and biases, so in order to train it you can back-propogate training data. Make sure you only pass in batches of 10 to 100 training examples, you can re-run backprop as many times as you want and it will continue to improve.
 ```
 # This will backproagate the network on the first 100 training examples
 nn.backprop(training_data[:100])
@@ -47,7 +47,7 @@ print("Accuracy:", str(nn.test(testing_data) * 100) + "%")
 
 ## Visualization
 
-You might be wondering why you needed to install matplotlib, well here's your answer! You can display the weights of your network as images to gain an understanging about how it works internally. For these to work well, try to use square numbers for the number of nodes in each layer of your network.
+You might be wondering why you needed to install matplotlib, well here's your answer! You can display the weights of your network as images to gain an understanding about how it works internally. For these to work well, try to use square numbers for the number of nodes in each layer of your network.
 ```
 # This will show the weights for each node in the first hidden layer
 nn.show()
