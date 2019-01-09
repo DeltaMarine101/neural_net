@@ -1,5 +1,7 @@
-# Welcome to my neural net!
  ![](https://img.shields.io/badge/version-alpha%201.0-red.svg) ![](https://img.shields.io/badge/python-3.71-green.svg) ![](https://img.shields.io/badge/licence-MIT-blue.svg) 
+
+# Welcome to my neural net!
+
 Hi! I'm Jeremie and this is my first atempt at making a **neural network** from scratch. If you want to learn about neural networks yourself, you can [watch these videos](https://www.youtube.com/watch?v=aircAruvnKk&list=PLjtrFat0jG9e8K-A_QpIJAzsBHTgPARQW). If you want to play around with making one yourself, feel free to edit, tinker and destroy my code!
 
 
