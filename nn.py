@@ -6,10 +6,10 @@ import time
 import matplotlib.pyplot as plt
 import matplotlib.colors as cplt
 
-# data = [(np.array(list(map(float, i[38:].split()))) / 256., np.array(list(map(float, i[8:28].split())))) for i in open('mnist.txt').read().strip().split('\n')]
-# pickle.dump(data, open('mnist.pickle', 'wb'))
+# data = [(np.array(list(map(float, i[38:].split()))) / 256., np.array(list(map(float, i[8:28].split())))) for i in open('data/mnist.txt').read().strip().split('\n')]
+# pickle.dump(data, open('data/mnist.pickle', 'wb'))
 
-data = pickle.load(open('mnist.pickle', 'rb'))
+data = pickle.load(open('data/mnist.pickle', 'rb'))
 
 training_data = data[:50000]
 test_data = data[50000:]
@@ -40,8 +40,6 @@ class neural_net:
         self.struct = struct
         self.n_layers = len(struct) - 2
         self.lr = 1
-        self.input = np.zeros(struct[0])
-        self.out = np.zeros(struct[-1])
         # [
         #     [ // layer 1->2
         #         [0, ...], // hidden 1
@@ -129,7 +127,7 @@ class neural_net:
         side = int(math.sqrt(self.struct[layer - 1]))
 
         cmap = cplt.LinearSegmentedColormap.from_list("", ["#ff704d", "#222222", "#70db70"])
-        plt.show()
+
         n_plots = int(math.sqrt(self.struct[layer]))
         fig, axes = plt.subplots(n_plots, n_plots)
         for i in range(n_plots):
@@ -139,7 +137,7 @@ class neural_net:
                 axes[i, j].imshow(X, interpolation='nearest', cmap=cmap)
 
         plt.subplots_adjust(left=0.03, right=0.97, top=0.97, bottom=0.03, wspace=0.1, hspace=0.1)
-
+        plt.show()
 
 
     def set_lr(self, lr):
@@ -152,6 +150,7 @@ print("Loss:", loss)
 # print("Accuracy:", str(nn.test(test_data) * 100) + "%")
 print("Accuracy:", str(nn.test(training_data[:100]) * 100) + "%")
 
+show_img(training_data[0][0])
 nn.show()
 
 prev = loss
@@ -173,5 +172,5 @@ for i, data in enumerate([training_data[n:n + batch] for n in range(0, batch * c
 print("Accuracy:", str(nn.test(training_data[:2500]) * 100) + "%")
 nn.run(training_data[0][0], show=True)
 
-
+# nn.show()
 # show_img(training_data[0][0])
