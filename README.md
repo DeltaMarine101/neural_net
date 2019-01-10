@@ -83,3 +83,7 @@ That funny symbol represents the sigmoid function which squishes all numbers on 
 ![](https://latex.codecogs.com/svg.latex?\sigma(x)=\frac{1}{1&plus;e^{-x}})
 
 ![](http://www.tikalon.com/blog/2011/sigmoid.gif)
+
+Finally we take the output layer y, and use it to calculate a loss based on the true answer:
+
+![](https://latex.codecogs.com/svg.latex?Loss=\sum_{i=0}^{m}(y_i-L_i^{(n)})^2)
