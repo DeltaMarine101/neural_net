@@ -64,3 +64,12 @@ You can also display an example of your training data like so:
 img_show(training_data[0][0])
 ```
 ![MNIST dataset handwritten 5](https://i.imgur.com/KVqy097.png)
+
+## The maths
+A big part of machine learning and in particular neural networks is maths, specifically linear algebra and multi-variable calculus. Here I will try to explain the maths behind my code to demystify some of the more complicated parts. I do encourage you to watch the video series I linked to in the intro.
+
+### Forward propagation
+The easiest part is simply running the network, here I'll define some notation to make things easier.
+The nth layers' weights, biases and activations are defined like this respectively:
+
+![](https://latex.codecogs.com/svg.latex?w^{(n)}&space;=&space;\begin{bmatrix}&space;w_{0,0}^{(n)}&space;&&space;...&space;&&space;w_{0,i}^{(n)}&space;\\\\&space;:&&space;:&space;&&space;:&space;\\\\&space;w_{j,0}^{(n)}&&space;...&space;&&space;w_{j,i}^{(n)}&space;\end{bmatrix}) ![](https://latex.codecogs.com/svg.latex?b^{(n)}&space;=&space;\begin{bmatrix}&space;b_{0}^{(n)}&space;\\\\&space;:\\\\&space;b_{j}^{(n)}&space;\end{bmatrix})   ![](https://latex.codecogs.com/svg.latex?L^{(n)}&space;=&space;\begin{bmatrix}&space;L_{0}^{(n)}&space;\\\\&space;:\\\\&space;L_{j}^{(n)}&space;\end{bmatrix})
