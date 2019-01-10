@@ -73,3 +73,13 @@ The easiest part is simply running the network, here I'll define some notation t
 The nth layers' weights, biases and activations are defined like this respectively:
 
 ![](https://latex.codecogs.com/svg.latex?w^{(n)}&space;=&space;\begin{bmatrix}&space;w_{0,0}^{(n)}&space;&&space;...&space;&&space;w_{0,i}^{(n)}&space;\\\\&space;:&&space;:&space;&&space;:&space;\\\\&space;w_{j,0}^{(n)}&&space;...&space;&&space;w_{j,i}^{(n)}&space;\end{bmatrix}) ![](https://latex.codecogs.com/svg.latex?b^{(n)}&space;=&space;\begin{bmatrix}&space;b_{0}^{(n)}&space;\\\\&space;:\\\\&space;b_{j}^{(n)}&space;\end{bmatrix})   ![](https://latex.codecogs.com/svg.latex?L^{(n)}&space;=&space;\begin{bmatrix}&space;L_{0}^{(n)}&space;\\\\&space;:\\\\&space;L_{j}^{(n)}&space;\end{bmatrix})
+
+The operation of going from one layer to the next is where the linear algebra applies, and it's as follows:
+
+![](https://latex.codecogs.com/svg.latex?L^{(n)}=\sigma(w^{(n)}\cdot&space;L^{(n-1)}&space;&plus;&space;b^{(n)}))
+
+That funny symbol represents the sigmoid function which squishes all numbers on the number line between 0 and 1.
+
+![](https://latex.codecogs.com/svg.latex?\sigma(x)=\frac{1}{1&plus;e^{-x}})
+
+![](http://www.tikalon.com/blog/2011/sigmoid.gif)
