@@ -87,3 +87,7 @@ That funny symbol represents the sigmoid function which squishes all numbers on 
 Finally we take the output layer y, and use it to calculate a loss based on the true answer:
 
 ![](https://latex.codecogs.com/svg.latex?Loss=\sum_{i=0}^{m}(y_i-L_i^{(n)})^2)
+
+## Back propagation
+
+Now the hard stuff. So we want to find the derivative of Loss with respect to every weight and bias in the network, but we can use the chain rule to make this a bit easier. 
