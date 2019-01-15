@@ -39,7 +39,7 @@ class neural_net:
         # structure is a tuple with entries representing no. of nodes in each layer
         self.struct = struct
         self.n_layers = len(struct) - 2
-        self.lr = 1
+        self.lr = 7
         # [
         #     [ // layer 1->2
         #         [0, ...], // hidden 1
@@ -87,10 +87,9 @@ class neural_net:
                         if n > 0:
                             Lwb = L[n][nodei] * self.weight[n][nodej][nodei] + self.bias[n - 1][nodei]
                             if n == self.n_layers:
-                                deriv = 2 / self.struct[n + 1] * (sigmoid(Lwb) - y[nodej]) * sigmoid(Lwb, derivative=True)
+                                deriv = (2 / self.struct[n + 1]) * (sigmoid(Lwb) - y[nodej]) * sigmoid(Lwb, derivative=True)
                             else:
                                 deriv = sigmoid(Lwb, derivative=True) * dactivation[n][nodej]
-
                             dweight[n][nodej][nodei] += deriv * L[n][nodei]
                             dbias[n - 1][nodei] += deriv
                             dactivation[n - 1][nodei] += deriv * self.weight[n][nodej][nodei]
@@ -98,8 +97,12 @@ class neural_net:
                             Lwb = L[n][nodei] * self.weight[n][nodej][nodei]
                             deriv = sigmoid(Lwb, derivative=True) * dactivation[n][nodej]
 
-                            dweight[n][nodej][nodei] = deriv * L[n][nodei]
+                            # print(deriv, L[n][nodei])
 
+                            dweight[n][nodej][nodei] += deriv # * L[n][nodei]
+        # print(dweight)
+        # print("\n___\n")
+        # print(dbias)
         self.weight = [x - (y * self.lr) / len(training) for x, y in zip(self.weight, dweight)]
         self.bias = [x - (y * self.lr)  / len(training) for x, y in zip(self.bias, dbias)]
 
@@ -148,28 +151,30 @@ nn.run(training_data[0][0], show=True)
 loss = nn.loss(training_data[:2500])
 print("Loss:", loss)
 # print("Accuracy:", str(nn.test(test_data) * 100) + "%")
-print("Accuracy:", str(nn.test(training_data[:100]) * 100) + "%")
+print("Accuracy:", str(nn.test(training_data[:20*50]) * 100) + "%")
 
-show_img(training_data[0][0])
-nn.show()
+# show_img(training_data[0][0])
+# nn.show()
 
 prev = loss
 batch = 50
-cycles = 50
-for i, data in enumerate([training_data[n:n + batch] for n in range(0, batch * cycles, batch)]):
-    time1 = time.time()
-    nn.backprop(data)
-    time2 = time.time()
-    print('{:.3f} s'.format(time2 - time1))
+cycles = 20
+for iter in range(5):
+    for i, data in enumerate([training_data[n:n + batch] for n in range(0, batch * cycles, batch)]):
+        time1 = time.time()
+        nn.backprop(data)
+        time2 = time.time()
+        print('{:.3f} s'.format(time2 - time1))
 
-    loss = nn.loss(training_data[:batch * cycles])
+        loss = nn.loss(training_data[:batch * cycles])
 
-    print("(" + str(i + 1) + "/" + str(cycles) + ") Loss:", loss, ['+', '-'][prev > loss])
-    prev = loss
+        print("(" + str(i + 1) + "/" + str(cycles) + ") Loss:", loss, ['+', '-'][prev > loss])
+        prev = loss
+    print(iter, "Accuracy:", str(nn.test(training_data[:20*50]) * 100) + "%")
 # for i in range(1000):
 #     nn.backprop([training_data[0]])
 # print("Accuracy:", str(nn.test(test_data) * 100) + "%")
-print("Accuracy:", str(nn.test(training_data[:2500]) * 100) + "%")
+print("Final Accuracy:", str(nn.test(training_data[:20*50]) * 100) + "%")
 nn.run(training_data[0][0], show=True)
 
 # nn.show()
