@@ -92,7 +92,7 @@ class neural_net:
             dactivation[-1] = (2 / self.struct[-1]) * (L[-1] - y)
 
             for n in reversed(range(self.n_layers + 1)):
-                rpc = np.sign(L[n]) * self.rp / len(data)
+                rpc = -1 * np.sign(L[n]) * self.rp / len(data)
                 bias = [np.zeros(self.struct[n])] + self.bias
                 for nodej in range(self.struct[n + 1]):
                     deriv = sigmoid(L[n]* self.weight[n][nodej] + bias[n], derivative=True) * dactivation[n][nodej]
