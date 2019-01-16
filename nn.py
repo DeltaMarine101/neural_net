@@ -35,11 +35,11 @@ def sigmoid(x, derivative=False):
     return sigm
 
 class neural_net:
-    def __init__(self, struct):
+    def __init__(self, struct, lr=.1):
         # structure is a tuple with entries representing no. of nodes in each layer
         self.struct = struct
         self.n_layers = len(struct) - 2
-        self.lr = .001
+        self.lr = lr
         # [
         #     [ // layer 1->2
         #         [0, ...], // hidden 1
@@ -148,7 +148,7 @@ class neural_net:
     def load(self, name='last_model.nn'):
         self.struct, self.n_layers, self.lr, self.weight, self.bias = pickle.load(open('model/' + name, 'rb'))
 
-nn = neural_net((28 * 28, 256, 256, 10))
+nn = neural_net((28 * 28, 64, 64, 10))
 nn.run(training_data[0][0], show=True)
 loss = nn.loss(training_data)
 print("Loss:", loss)
@@ -158,8 +158,8 @@ print("Loss:", loss)
 # nn.show()
 
 prev = loss
-batch = 50
-cycles = 1000
+batch = 500
+cycles = 100
 print("Accuracy:", str(nn.test(test_data) * 100) + "%")
 while True:
     for i, data in enumerate([training_data[n:n + batch] for n in range(0, batch * cycles, batch)]):
