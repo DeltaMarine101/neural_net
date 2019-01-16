@@ -18,7 +18,7 @@ def time_func(func):
     def wrapper(*arg, **kw):
         t1 = time.time()
         res = func(*arg, **kw)
-        print('{:.3f} s'.format(time.time() - t1))
+        print('{} {:.3f}s'.format(func.__name__, time.time() - t1))
         return res
     return wrapper
 
@@ -43,7 +43,7 @@ def sigmoid(x, derivative=False):
     return sigm
 
 class neural_net:
-    def __init__(self, struct, lr=.1, rp=0.001):
+    def __init__(self, struct, lr=.001, rp=0.001):
         # structure is a tuple with entries representing no. of nodes in each layer
         self.struct = struct
         self.n_layers = len(struct) - 2
@@ -51,11 +51,10 @@ class neural_net:
         self.rp = rp
 
         # Random value initalisation
-        self.weight = [(np.random.rand(w, v) * 2 - 1)  / math.sqrt(v) for v, w in zip(struct[:-1], struct[1:])]
+        self.weight = [(np.random.rand(w, v) * 2 - 1) / math.sqrt(v) for v, w in zip(struct[:-1], struct[1:])]
         self.bias = [np.random.rand(v) for v in struct[1:-1]]
 
-    def run(self, x, show=False):
-        L = x
+    def run(self, L, show=False):
         for i in range(self.n_layers):
             L = sigmoid(np.dot(self.weight[i], L) + self.bias[i])
         L = sigmoid(np.dot(self.weight[self.n_layers], L))
@@ -97,22 +96,15 @@ class neural_net:
         self.weight = [x - (y * self.lr) / len(training) for x, y in zip(self.weight, dweight)]
         self.bias = [x - (y * self.lr)  / len(training) for x, y in zip(self.bias, dbias)]
 
+    @time_func
     def loss(self, data):
-        print(self.rp * sum([np.sum(np.square(i)) for i in self.weight]) / (2 * len(data)))
-        return sum([sum(np.square(self.run(i[0]) - i[1])) / len(i[1]) for i in data]) / len(data) # + self.rp * sum([np.sum(np.square(i)) for i in self.weight]) / 2
+        return sum([np.sum(np.square(self.run(x) - y)) / len(y) for x, y in data]) / len(data) # + self.rp * sum([np.sum(np.square(i)) for i in self.weight]) / 2
 
     def test(self, test_data):
         n_pass = 0
         for x, y in test_data:
-            fx = self.run(x)
-            max = fx[0]
-            max_i = 0
-            for i in range(len(fx)):
-                if fx[i] > max:
-                    max = fx[i]
-                    max_i = i
-            if y[max_i] == 1:
-                n_pass += 1
+            fx = self.run(x).tolist()
+            n_pass += (y[fx.index(max(fx))] == 1)
 
         return n_pass / len(test_data)
 
@@ -140,8 +132,8 @@ class neural_net:
     def load(self, name='last_model.nn'):
         self.struct, self.n_layers, self.lr, self.weight, self.bias = pickle.load(open('model/' + name, 'rb'))
 
-nn = neural_net((28 * 28, 16, 16, 10))
-# nn.load()
+nn = neural_net((28 * 28, 256, 256, 10))
+## nn.load()
 nn.run(training_data[0][0], show=True)
 loss = nn.loss(training_data)
 print("Initial loss:", loss)
@@ -151,19 +143,18 @@ print("Initial loss:", loss)
 # nn.show()
 
 prev = loss
-batch = 50
-cycles = 100
+batch = 100
+cycles = 500
 while True:
     for i, data in enumerate([training_data[n:n + batch] for n in range(0, batch * cycles, batch)]):
+        nn.backprop(data)
+
         if not i % 10:
             print(i, "Accuracy:", str(nn.test(test_data) * 100) + "%")
 
-        nn.backprop(data)
-
-        loss = nn.loss(training_data[i % 3::3])
-
-        print("(" + str(i + 1) + "/" + str(cycles) + ") Loss:", loss, ['+', '-'][prev > loss])
-        prev = loss
+            loss = nn.loss(training_data[i % 3::3])
+            print("(" + str(i + 1) + "/" + str(cycles) + ") Loss:", loss, ['+', '-'][prev > loss])
+            prev = loss
 
         nn.save()
 
