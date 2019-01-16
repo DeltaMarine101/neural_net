@@ -43,22 +43,14 @@ def sigmoid(x, derivative=False):
     return sigm
 
 class neural_net:
-    def __init__(self, struct, lr=.1, rp=0.01):
+    def __init__(self, struct, lr=.1, rp=0.001):
         # structure is a tuple with entries representing no. of nodes in each layer
         self.struct = struct
         self.n_layers = len(struct) - 2
         self.lr = lr
         self.rp = rp
-        # [
-        #     [ // layer 1->2
-        #         [0, ...], // hidden 1
-        #         [0, ...]  // hidden 2
-        #     ],
-        #     [] // layer 2->3
-        # ]
 
         # Random value initalisation
-
         self.weight = [(np.random.rand(w, v) * 2 - 1)  / math.sqrt(v) for v, w in zip(struct[:-1], struct[1:])]
         self.bias = [np.random.rand(v) for v in struct[1:-1]]
 
@@ -92,11 +84,12 @@ class neural_net:
             dactivation[-1] = (2 / self.struct[-1]) * (L[-1] - y)
 
             for n in reversed(range(self.n_layers + 1)):
-                rpc = -1 * np.sign(L[n]) * self.rp / len(data)
+                # rpc = -1 * np.sign(L[n]) * self.rp
+
                 bias = [np.zeros(self.struct[n])] + self.bias
                 for nodej in range(self.struct[n + 1]):
-                    deriv = sigmoid(L[n]* self.weight[n][nodej] + bias[n], derivative=True) * dactivation[n][nodej]
-                    dweight[n][nodej] += deriv * L[n] + rpc
+                    deriv = sigmoid(L[n] * self.weight[n][nodej] + bias[n], derivative=True) * dactivation[n][nodej]
+                    dweight[n][nodej] += deriv * L[n] # + rpc * self.weight[n][nodej]
                     if n > 0:
                         dbias[n - 1] += deriv
                         dactivation[n - 1] += deriv * self.weight[n][nodej]
@@ -105,7 +98,8 @@ class neural_net:
         self.bias = [x - (y * self.lr)  / len(training) for x, y in zip(self.bias, dbias)]
 
     def loss(self, data):
-        return sum([sum(np.square(self.run(i[0]) - i[1])) / len(i[1]) for i in data]) / len(data) + self.rp * sum([np.sum(np.square(i)) for i in self.weight]) / (2 * len(data))
+        print(self.rp * sum([np.sum(np.square(i)) for i in self.weight]) / (2 * len(data)))
+        return sum([sum(np.square(self.run(i[0]) - i[1])) / len(i[1]) for i in data]) / len(data) # + self.rp * sum([np.sum(np.square(i)) for i in self.weight]) / 2
 
     def test(self, test_data):
         n_pass = 0
