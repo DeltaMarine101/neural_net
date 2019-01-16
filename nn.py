@@ -83,14 +83,13 @@ class neural_net:
 
             for n in reversed(range(self.n_layers + 1)):
                 bias = [np.zeros(self.struct[n])] + self.bias
-                for nodei in range(self.struct[n]):
-                    for nodej in range(self.struct[n + 1]):
-                        deriv = sigmoid(L[n][nodei] * self.weight[n][nodej][nodei] + bias[n][nodei], derivative=True) * dactivation[n][nodej]
-
-                        dweight[n][nodej][nodei] += deriv * L[n][nodei]
+                for nodej in range(self.struct[n + 1]):
+                    deriv = sigmoid(L[n]* self.weight[n][nodej] + bias[n], derivative=True) * dactivation[n][nodej]
+                    for nodei in range(self.struct[n]):
+                        dweight[n][nodej][nodei] += deriv[nodei] * L[n][nodei]
                         if n > 0:
-                            dbias[n - 1][nodei] += deriv
-                            dactivation[n - 1][nodei] += deriv * self.weight[n][nodej][nodei]
+                            dbias[n - 1][nodei] += deriv[nodei]
+                            dactivation[n - 1][nodei] += deriv[nodei] * self.weight[n][nodej][nodei]
 
         self.weight = [x - (y * self.lr) / len(training) for x, y in zip(self.weight, dweight)]
         self.bias = [x - (y * self.lr)  / len(training) for x, y in zip(self.bias, dbias)]
@@ -160,7 +159,7 @@ while True:
         time2 = time.time()
         print('{:.3f} s'.format(time2 - time1))
 
-        loss = nn.loss(training_data)
+        loss = nn.loss(training_data[i % 3::3])
 
         print("(" + str(i + 1) + "/" + str(cycles) + ") Loss:", loss, ['+', '-'][prev > loss])
         prev = loss
