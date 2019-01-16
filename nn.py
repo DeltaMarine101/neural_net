@@ -69,10 +69,10 @@ class neural_net:
         L = sigmoid(np.dot(self.weight[self.n_layers], L))
 
         if show:
-            print("Result\n_________________\n")
+            print("Result\n_____________________\n")
             for i in range(len(L)):
                 print(str(i) + ":", L[i])
-            print("_________________\n")
+            print("_____________________\n")
 
         return L
 
@@ -92,10 +92,11 @@ class neural_net:
             dactivation[-1] = (2 / self.struct[-1]) * (L[-1] - y)
 
             for n in reversed(range(self.n_layers + 1)):
+                rpc = np.sign(L[n]) * self.rp / len(data)
                 bias = [np.zeros(self.struct[n])] + self.bias
                 for nodej in range(self.struct[n + 1]):
                     deriv = sigmoid(L[n]* self.weight[n][nodej] + bias[n], derivative=True) * dactivation[n][nodej]
-                    dweight[n][nodej] += deriv * L[n] # + (1, -1)[L[n][nodei] > 0] * self.rp / len(data)
+                    dweight[n][nodej] += deriv * L[n] + rpc
                     if n > 0:
                         dbias[n - 1] += deriv
                         dactivation[n - 1] += deriv * self.weight[n][nodej]
@@ -104,7 +105,7 @@ class neural_net:
         self.bias = [x - (y * self.lr)  / len(training) for x, y in zip(self.bias, dbias)]
 
     def loss(self, data):
-        return sum([sum(np.square(self.run(i[0]) - i[1])) / len(i[1]) for i in data]) / len(data) #+ self.rp * sum([np.sum(np.square(i)) for i in self.weight]) / (2 * len(data))
+        return sum([sum(np.square(self.run(i[0]) - i[1])) / len(i[1]) for i in data]) / len(data) + self.rp * sum([np.sum(np.square(i)) for i in self.weight]) / (2 * len(data))
 
     def test(self, test_data):
         n_pass = 0
