@@ -71,7 +71,7 @@ class neural_net:
         # Init deltas to 0
         dweight = [np.zeros((w, v)) for v, w in zip(self.struct[:-1], self.struct[1:])]
         dbias = [np.zeros(v) for v in self.struct[1:-1]]
-        dactivation = [np.zeros(v) for v in self.struct[1:-1]]
+        dactivation = [np.zeros(v) for v in self.struct[1:]]
 
         for example in training:
             x = example[0]
@@ -80,29 +80,21 @@ class neural_net:
             L = [x]
             for i in range(self.n_layers):
                 L += [sigmoid(np.dot(self.weight[i], L[i]) + self.bias[i])]
+            L += [sigmoid(np.dot(self.weight[-1], L[-1]))]
+
+            dactivation[-1] = (2 / self.struct[-1]) * (L[-1] - y)
 
             for n in reversed(range(self.n_layers + 1)):
                 for nodei in range(self.struct[n]):
                     for nodej in range(self.struct[n + 1]):
+                        Lwb = L[n][nodei] * self.weight[n][nodej][nodei] + self.bias[n - 1][nodei * (n > 0)] * (n > 0)
+                        deriv = sigmoid(Lwb, derivative=True) * dactivation[n][nodej]
+
+                        dweight[n][nodej][nodei] += deriv * L[n][nodei]
                         if n > 0:
-                            Lwb = L[n][nodei] * self.weight[n][nodej][nodei] + self.bias[n - 1][nodei]
-                            if n == self.n_layers:
-                                deriv = (2 / self.struct[n + 1]) * (sigmoid(Lwb) - y[nodej]) * sigmoid(Lwb, derivative=True)
-                            else:
-                                deriv = sigmoid(Lwb, derivative=True) * dactivation[n][nodej]
-                            dweight[n][nodej][nodei] += deriv * L[n][nodei]
                             dbias[n - 1][nodei] += deriv
-                            dactivation[n - 1][nodei] += deriv * self.weight[n][nodej][nodei]
-                        else: # Dont calculate a bias for first layer
-                            Lwb = L[n][nodei] * self.weight[n][nodej][nodei]
-                            deriv = sigmoid(Lwb, derivative=True) * dactivation[n][nodej]
+                            dactivation[n - 1][nodei ] += deriv * self.weight[n][nodej][nodei]
 
-                            # print(deriv, L[n][nodei])
-
-                            dweight[n][nodej][nodei] += deriv * L[n][nodei]
-        # print(dweight)
-        # print("\n___\n")
-        # print(dbias)
         self.weight = [x - (y * self.lr) / len(training) for x, y in zip(self.weight, dweight)]
         self.bias = [x - (y * self.lr)  / len(training) for x, y in zip(self.bias, dbias)]
 
@@ -148,38 +140,40 @@ class neural_net:
     def load(self, name='last_model.nn'):
         self.struct, self.n_layers, self.lr, self.weight, self.bias = pickle.load(open('model/' + name, 'rb'))
 
-nn = neural_net((28 * 28, 64, 64, 10))
+nn = neural_net((28 * 28, 16, 16, 10))
+# nn.load()
 nn.run(training_data[0][0], show=True)
 loss = nn.loss(training_data)
-print("Loss:", loss)
+print("Initial loss:", loss)
 # print("Accuracy:", str(nn.test(test_data) * 100) + "%")
 
 # show_img(training_data[0][0])
 # nn.show()
 
 prev = loss
-batch = 500
+batch = 50
 cycles = 100
-print("Accuracy:", str(nn.test(test_data) * 100) + "%")
 while True:
     for i, data in enumerate([training_data[n:n + batch] for n in range(0, batch * cycles, batch)]):
+        if not i % 10:
+            print(i, "Accuracy:", str(nn.test(test_data) * 100) + "%")
+
         time1 = time.time()
         nn.backprop(data)
         time2 = time.time()
         print('{:.3f} s'.format(time2 - time1))
 
-        loss = nn.loss(training_data[:batch * cycles])
+        loss = nn.loss(training_data)
 
         print("(" + str(i + 1) + "/" + str(cycles) + ") Loss:", loss, ['+', '-'][prev > loss])
         prev = loss
 
         nn.save()
-        if i % 5 == 4:
-            print(i, "Accuracy:", str(nn.test(test_data) * 100) + "%")
+
 # for i in range(1000):
 #     nn.backprop([training_data[0]])
 # print("Accuracy:", str(nn.test(test_data) * 100) + "%")
-print("Final Accuracy:", str(nn.test(training_data[:40*20]) * 100) + "%")
+print("Final Accuracy:", str(nn.test(test_data) * 100) + "%")
 nn.run(training_data[0][0], show=True)
 
 # nn.show()
