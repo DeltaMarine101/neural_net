@@ -14,6 +14,14 @@ data = pickle.load(open('data/mnist.pickle', 'rb'))
 training_data = data[:50000]
 test_data = data[50000:]
 
+def time_func(func):
+    def wrapper(*arg, **kw):
+        t1 = time.time()
+        res = func(*arg, **kw)
+        print('{:.3f} s'.format(time.time() - t1))
+        return res
+    return wrapper
+
 def show_img(img, size=28):
     plt.style.use('dark_background')
 
@@ -35,11 +43,12 @@ def sigmoid(x, derivative=False):
     return sigm
 
 class neural_net:
-    def __init__(self, struct, lr=.1):
+    def __init__(self, struct, lr=.1, rp=0.01):
         # structure is a tuple with entries representing no. of nodes in each layer
         self.struct = struct
         self.n_layers = len(struct) - 2
         self.lr = lr
+        self.rp = rp
         # [
         #     [ // layer 1->2
         #         [0, ...], // hidden 1
@@ -60,13 +69,14 @@ class neural_net:
         L = sigmoid(np.dot(self.weight[self.n_layers], L))
 
         if show:
-            print("Result\n_____________\n")
+            print("Result\n_________________\n")
             for i in range(len(L)):
                 print(str(i) + ":", L[i])
-            print("_____________\n")
+            print("_________________\n")
 
         return L
 
+    @time_func
     def backprop(self, training):
         # Init deltas to 0
         dweight = [np.zeros((w, v)) for v, w in zip(self.struct[:-1], self.struct[1:])]
@@ -85,17 +95,16 @@ class neural_net:
                 bias = [np.zeros(self.struct[n])] + self.bias
                 for nodej in range(self.struct[n + 1]):
                     deriv = sigmoid(L[n]* self.weight[n][nodej] + bias[n], derivative=True) * dactivation[n][nodej]
-                    for nodei in range(self.struct[n]):
-                        dweight[n][nodej][nodei] += deriv[nodei] * L[n][nodei]
-                        if n > 0:
-                            dbias[n - 1][nodei] += deriv[nodei]
-                            dactivation[n - 1][nodei] += deriv[nodei] * self.weight[n][nodej][nodei]
+                    dweight[n][nodej] += deriv * L[n] # + (1, -1)[L[n][nodei] > 0] * self.rp / len(data)
+                    if n > 0:
+                        dbias[n - 1] += deriv
+                        dactivation[n - 1] += deriv * self.weight[n][nodej]
 
         self.weight = [x - (y * self.lr) / len(training) for x, y in zip(self.weight, dweight)]
         self.bias = [x - (y * self.lr)  / len(training) for x, y in zip(self.bias, dbias)]
 
     def loss(self, data):
-        return sum([sum(np.square(self.run(i[0]) - i[1])) / len(i[1]) for i in data]) / len(data)
+        return sum([sum(np.square(self.run(i[0]) - i[1])) / len(i[1]) for i in data]) / len(data) #+ self.rp * sum([np.sum(np.square(i)) for i in self.weight]) / (2 * len(data))
 
     def test(self, test_data):
         n_pass = 0
@@ -154,10 +163,7 @@ while True:
         if not i % 10:
             print(i, "Accuracy:", str(nn.test(test_data) * 100) + "%")
 
-        time1 = time.time()
         nn.backprop(data)
-        time2 = time.time()
-        print('{:.3f} s'.format(time2 - time1))
 
         loss = nn.loss(training_data[i % 3::3])
 
