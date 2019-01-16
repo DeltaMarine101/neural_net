@@ -39,7 +39,7 @@ class neural_net:
         # structure is a tuple with entries representing no. of nodes in each layer
         self.struct = struct
         self.n_layers = len(struct) - 2
-        self.lr = 7
+        self.lr = .001
         # [
         #     [ // layer 1->2
         #         [0, ...], // hidden 1
@@ -93,13 +93,13 @@ class neural_net:
                             dweight[n][nodej][nodei] += deriv * L[n][nodei]
                             dbias[n - 1][nodei] += deriv
                             dactivation[n - 1][nodei] += deriv * self.weight[n][nodej][nodei]
-                        else:
+                        else: # Dont calculate a bias for first layer
                             Lwb = L[n][nodei] * self.weight[n][nodej][nodei]
                             deriv = sigmoid(Lwb, derivative=True) * dactivation[n][nodej]
 
                             # print(deriv, L[n][nodei])
 
-                            dweight[n][nodej][nodei] += deriv # * L[n][nodei]
+                            dweight[n][nodej][nodei] += deriv * L[n][nodei]
         # print(dweight)
         # print("\n___\n")
         # print(dbias)
@@ -142,24 +142,26 @@ class neural_net:
         plt.subplots_adjust(left=0.03, right=0.97, top=0.97, bottom=0.03, wspace=0.1, hspace=0.1)
         plt.show()
 
+    def save(self, name='last_model.nn'):
+        pickle.dump((self.struct, self.n_layers, self.lr, self.weight, self.bias), open('model/' + name, 'wb'))
 
-    def set_lr(self, lr):
-        self.lr = lr
+    def load(self, name='last_model.nn'):
+        self.struct, self.n_layers, self.lr, self.weight, self.bias = pickle.load(open('model/' + name, 'rb'))
 
-nn = neural_net((28 * 28, 16, 16, 10))
+nn = neural_net((28 * 28, 256, 256, 10))
 nn.run(training_data[0][0], show=True)
-loss = nn.loss(training_data[:2500])
+loss = nn.loss(training_data)
 print("Loss:", loss)
 # print("Accuracy:", str(nn.test(test_data) * 100) + "%")
-print("Accuracy:", str(nn.test(training_data[:20*50]) * 100) + "%")
 
 # show_img(training_data[0][0])
 # nn.show()
 
 prev = loss
 batch = 50
-cycles = 20
-for iter in range(5):
+cycles = 1000
+print("Accuracy:", str(nn.test(test_data) * 100) + "%")
+while True:
     for i, data in enumerate([training_data[n:n + batch] for n in range(0, batch * cycles, batch)]):
         time1 = time.time()
         nn.backprop(data)
@@ -170,11 +172,14 @@ for iter in range(5):
 
         print("(" + str(i + 1) + "/" + str(cycles) + ") Loss:", loss, ['+', '-'][prev > loss])
         prev = loss
-    print(iter, "Accuracy:", str(nn.test(training_data[:20*50]) * 100) + "%")
+
+        nn.save()
+        if i % 5 == 4:
+            print(i, "Accuracy:", str(nn.test(test_data) * 100) + "%")
 # for i in range(1000):
 #     nn.backprop([training_data[0]])
 # print("Accuracy:", str(nn.test(test_data) * 100) + "%")
-print("Final Accuracy:", str(nn.test(training_data[:20*50]) * 100) + "%")
+print("Final Accuracy:", str(nn.test(training_data[:40*20]) * 100) + "%")
 nn.run(training_data[0][0], show=True)
 
 # nn.show()
