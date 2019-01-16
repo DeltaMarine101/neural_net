@@ -73,10 +73,7 @@ class neural_net:
         dbias = [np.zeros(v) for v in self.struct[1:-1]]
         dactivation = [np.zeros(v) for v in self.struct[1:]]
 
-        for example in training:
-            x = example[0]
-            y = example[1]
-
+        for x, y in training:
             L = [x]
             for i in range(self.n_layers):
                 L += [sigmoid(np.dot(self.weight[i], L[i]) + self.bias[i])]
@@ -85,15 +82,15 @@ class neural_net:
             dactivation[-1] = (2 / self.struct[-1]) * (L[-1] - y)
 
             for n in reversed(range(self.n_layers + 1)):
+                bias = [np.zeros(self.struct[n])] + self.bias
                 for nodei in range(self.struct[n]):
                     for nodej in range(self.struct[n + 1]):
-                        Lwb = L[n][nodei] * self.weight[n][nodej][nodei] + self.bias[n - 1][nodei * (n > 0)] * (n > 0)
-                        deriv = sigmoid(Lwb, derivative=True) * dactivation[n][nodej]
+                        deriv = sigmoid(L[n][nodei] * self.weight[n][nodej][nodei] + bias[n][nodei], derivative=True) * dactivation[n][nodej]
 
                         dweight[n][nodej][nodei] += deriv * L[n][nodei]
                         if n > 0:
                             dbias[n - 1][nodei] += deriv
-                            dactivation[n - 1][nodei ] += deriv * self.weight[n][nodej][nodei]
+                            dactivation[n - 1][nodei] += deriv * self.weight[n][nodej][nodei]
 
         self.weight = [x - (y * self.lr) / len(training) for x, y in zip(self.weight, dweight)]
         self.bias = [x - (y * self.lr)  / len(training) for x, y in zip(self.bias, dbias)]
